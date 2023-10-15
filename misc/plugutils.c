@@ -710,7 +710,7 @@ proto_post_wrapped (const char *oid, struct script_infos *desc, int port,
   
   // CUSTOM CHANGE : openvas-light
   // publish result in channel 'openvas_light_results'
-  kb_item_publish_str_openvas_light(kb, "openvas_light_results", data_openvas_light);
+  kb_item_publish_str_openvas_light(get_main_kb (), "openvas_light_results", data_openvas_light);
   // END CUSTOM CHANGE
 
   g_free (data);
