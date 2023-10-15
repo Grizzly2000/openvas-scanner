@@ -20,7 +20,7 @@ struct kb_redis
   unsigned int max_db; /**< Max # of databases. */
   unsigned int db;     /**< Namespace ID number, 0 if uninitialized. */
   redisContext *rctx;  /**< Redis client context. */
-  char *path[0];        /**< Path to the server socket. */
+  char *path;        /**< Path to the server socket. */
 };
 #define redis_kb(__kb) ((struct kb_redis *) (__kb))
 
