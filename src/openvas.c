@@ -642,6 +642,11 @@ openvas (int argc, char *argv[], char *env[])
   // run in openvas-light mode as a daemon
   if (run_standalone_openvas_light)
   {
+    if (plugins_cache_init ())
+    {
+      g_message ("Failed to initialize nvti cache.");
+      exit (1);
+    }
     run_standalone_scan();
     printf("Quit!\n");
     exit (0);
