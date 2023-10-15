@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "strings.h"
+
 void concat_str(char **dst, const char *str) {
     char *tmp = NULL;
 
