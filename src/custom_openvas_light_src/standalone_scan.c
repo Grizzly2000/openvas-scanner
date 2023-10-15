@@ -136,8 +136,11 @@ int run_standalone_scan(){
     return 1;
 }
 
-void * thread_loop_update_nvti()
+void * thread_loop_update_nvti(void*unused)
 {
+    if(unused != NULL)
+        pthread_exit(NULL);
+
     int counter_refresh_plugin = 0;
     int max_refresh = 760; // 5(sleep) * 12 = 1 minute => 5(sleep) * 12 * 60 = 1 heure => 12 * 60 = 720.
     for(;;)
@@ -157,8 +160,11 @@ void * thread_loop_update_nvti()
     pthread_exit(NULL);
 }
 
-void* thread_loop_garbage_collector_zombies()
+void* thread_loop_garbage_collector_zombies(void*unused)
 {
+    if(unused != NULL)
+        pthread_exit(NULL);
+    
     for(;;)
     {
         while (waitpid(WAIT_ANY, NULL, WNOHANG) != 0)

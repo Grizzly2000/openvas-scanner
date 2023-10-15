@@ -19,6 +19,10 @@
 #include <errno.h>               /* for errno() */
 #include <glib.h>                /* for g_free() */
 #include <gvm/base/networking.h> /* for gvm_resolve_list */
+// CUSTOM CHANGE : openvas-light
+// for prefs_get()
+#include <gvm/base/prefs.h>
+// END CUSTOM CHANGE
 #include <stdio.h>               /* for snprintf() */
 #include <string.h>              /* for strlen() */
 #include <sys/wait.h>            /* for waitpid() */
@@ -101,7 +105,7 @@ host_set_time (kb_t kb, char *ip, char *type)
     timestr,
     scan_id
   );
-  kb_item_phk_publish_str(kb, "openvas_light_results", log_msg_openvas_light);
+  kb_item_publish_str_openvas_light(kb, "openvas_light_results", log_msg_openvas_light);
   // END CUSTOM CHANGE
 
   snprintf (log_msg, sizeof (log_msg), "%s|||%s||||||||| |||%s", type, ip,

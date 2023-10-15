@@ -309,48 +309,6 @@ gcrypt_init (void)
   gcry_control (GCRYCTL_INITIALIZATION_FINISHED);
 }
 
-// CUSTOM CHANGE : openvas-light
-// Start openvas-light scanner (with scanid)
-void
-start_single_task_scan (char * scan_id)
-{
-  struct scan_globals *globals;
-
-#if GNUTLS_VERSION_NUMBER < 0x030300
-  if (openvas_SSL_init () < 0)
-    g_message ("Could not initialize openvas SSL!");
-#endif
-
-  if (prefs_get ("debug_tls") != NULL && atoi (prefs_get ("debug_tls")) > 0)
-    {
-      g_warning ("TLS debug is enabled and should only be used with care, "
-                 "since it may reveal sensitive information in the scanner "
-                 "logs and might make openvas fill your disk rather quickly.");
-      gnutls_global_set_log_function (my_gnutls_log_func);
-      gnutls_global_set_log_level (atoi (prefs_get ("debug_tls")));
-    }
-
-#ifdef OPENVAS_GIT_REVISION
-  g_message ("openvas %s (GIT revision %s) started", OPENVAS_VERSION,
-             OPENVAS_GIT_REVISION);
-#else
-  g_message ("openvas %s started", OPENVAS_VERSION);
-#endif
-
-  if (plugins_cache_init ())
-    {
-      g_message ("Failed to initialize nvti cache.");
-      exit (1);
-    }
-  init_signal_handlers ();
-
-  globals = g_malloc0 (sizeof (struct scan_globals));
-  globals->scan_id = g_strdup (scan_id);
-  scanner_thread (globals);
-  //exit (0);
-}
-// END CUSTOM CHANGE
-
 /**
  * @brief Check TLS.
  */
@@ -700,3 +658,51 @@ openvas (int argc, char *argv[], char *env[])
 
   return EXIT_SUCCESS;
 }
+
+// CUSTOM CHANGE : openvas-light
+// Start openvas-light scanner (with scanid)
+void
+start_single_task_scan (char * scan_id)
+{
+  struct scan_globals *globals;
+  static gchar *config_file = NULL;
+
+#if GNUTLS_VERSION_NUMBER < 0x030300
+  if (openvas_SSL_init () < 0)
+    g_message ("Could not initialize openvas SSL!");
+#endif
+
+  if (prefs_get ("debug_tls") != NULL && atoi (prefs_get ("debug_tls")) > 0)
+    {
+      g_warning ("TLS debug is enabled and should only be used with care, "
+                 "since it may reveal sensitive information in the scanner "
+                 "logs and might make openvas fill your disk rather quickly.");
+      gnutls_global_set_log_function (my_gnutls_log_func);
+      gnutls_global_set_log_level (atoi (prefs_get ("debug_tls")));
+    }
+
+#ifdef OPENVAS_GIT_REVISION
+  g_message ("openvas %s (GIT revision %s) started", OPENVAS_VERSION,
+             OPENVAS_GIT_REVISION);
+#else
+  g_message ("openvas %s started", OPENVAS_VERSION);
+#endif
+
+  if (plugins_cache_init ())
+    {
+      g_message ("Failed to initialize nvti cache.");
+      exit (1);
+    }
+  init_signal_handlers ();
+
+  globals = g_malloc0 (sizeof (struct scan_globals));
+  globals->scan_id = g_strdup (scan_id);
+
+  /* Config file location */
+  if (!config_file)
+    config_file = OPENVAS_CONF;
+
+  attack_network_init (globals, config_file);
+  //exit (0);
+}
+// END CUSTOM CHANGE

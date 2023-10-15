@@ -23,7 +23,7 @@
 #include "utils/strings.h"
 
 
-int run_standalone_scan();
+int run_standalone_scan(void);
 int run_scan(char * data_JSON);
-void * thread_loop_update_nvti();
-void * thread_loop_garbage_collector_zombies();
+void * thread_loop_update_nvti(void*);
+void * thread_loop_garbage_collector_zombies(void*);

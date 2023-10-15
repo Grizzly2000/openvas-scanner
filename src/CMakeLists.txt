@@ -17,6 +17,7 @@ pkg_check_modules (LIBGVM_BOREAS REQUIRED libgvm_boreas>=22.4)
 pkg_check_modules (LIBGVM_UTIL REQUIRED libgvm_util>=22.4)
 pkg_check_modules (GLIB REQUIRED glib-2.0>=2.42)
 pkg_check_modules (LIBBSD REQUIRED libbsd)
+pkg_check_modules (GLIB_JSON REQUIRED json-glib-1.0>=1.4.4)
 
 message (STATUS "Looking for libgcrypt...")
 find_library (GCRYPT gcrypt)
@@ -81,7 +82,9 @@ include_directories (${GLIB_INCLUDE_DIRS}
                      ${LIBOPENVAS_NASL_INCLUDE_DIRS}
                      ${LIBGVM_BASE_INCLUDE_DIRS}
                      ${LIBOPENVAS_MISC_INCLUDE_DIRS}
-                     ${GCRYPT_INCLUDE_DIRS})
+                     ${GCRYPT_INCLUDE_DIRS}
+                     ${GLIB_JSON_INCLUDE_DIRS})
+                     
 
 if (NOT CMAKE_BUILD_TYPE MATCHES "Release")
   # If we got GIT_REVISION at configure time,
@@ -162,6 +165,7 @@ target_link_libraries (openvas openvas_nasl_shared ${LIBOPENVAS_NASL_LDFLAGS}
                        ${LIBGVM_BOREAS_LDFLAGS}
                        ${LIBBSD_LDFLAGS} ${GLIB_LDFAGS} ${GCRYPT_LDFLAGS}
                        ${EXECINFO_LDFLAGS} ${PCAP_LDFLAGS}
+                       ${GLIB_JSON_LDFLAGS}
                        ${LINKER_HARDENING_FLAGS} ${CMAKE_THREAD_LIBS_INIT})
 
 ## Tests
@@ -186,6 +190,7 @@ target_link_libraries (attack-test openvas_nasl_shared cgreen
                        ${LIBBSD_LDFLAGS} ${GLIB_LDFAGS} ${GCRYPT_LDFLAGS}
                        ${EXECINFO_LDFLAGS} ${PCAP_LDFLAGS}
                        ${LINKER_HARDENING_FLAGS} ${CMAKE_THREAD_LIBS_INIT}
+                       ${GLIB_JSON_LDFLAGS}
                        -Wl,--wrap=redis_push_str)
 
 ## Static analysis
