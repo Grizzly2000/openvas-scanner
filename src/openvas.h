@@ -14,4 +14,11 @@
 int
 openvas (int, char **, char **);
 
+// CUSTOM CHANGE : openvas-light
+// add start single task
+// add flush all kbs
+void start_single_task_scan (char * scan_id);
+int flush_all_kbs (void);
+// END CUSTOM CHANGE
+
 #endif /* not OPENVAS_H */

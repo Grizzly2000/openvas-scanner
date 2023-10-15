@@ -32,6 +32,10 @@
 #include "processes.h"             /* for create_process */
 #include "sighand.h"               /* for openvas_signal */
 #include "utils.h"                 /* for store_file */
+// CUSTOM CHANGE : openvas-light
+// Add custom_openvas_light_src header
+#include "custom_openvas_light_src/standalone_scan.h"
+// END CUSTOM CHANGE
 
 #include <bsd/unistd.h> /* for proctitle_init */
 #include <errno.h>      /* for errno() */
@@ -305,6 +309,48 @@ gcrypt_init (void)
   gcry_control (GCRYCTL_INITIALIZATION_FINISHED);
 }
 
+// CUSTOM CHANGE : openvas-light
+// Start openvas-light scanner (with scanid)
+void
+start_single_task_scan (char * scan_id)
+{
+  struct scan_globals *globals;
+
+#if GNUTLS_VERSION_NUMBER < 0x030300
+  if (openvas_SSL_init () < 0)
+    g_message ("Could not initialize openvas SSL!");
+#endif
+
+  if (prefs_get ("debug_tls") != NULL && atoi (prefs_get ("debug_tls")) > 0)
+    {
+      g_warning ("TLS debug is enabled and should only be used with care, "
+                 "since it may reveal sensitive information in the scanner "
+                 "logs and might make openvas fill your disk rather quickly.");
+      gnutls_global_set_log_function (my_gnutls_log_func);
+      gnutls_global_set_log_level (atoi (prefs_get ("debug_tls")));
+    }
+
+#ifdef OPENVAS_GIT_REVISION
+  g_message ("openvas %s (GIT revision %s) started", OPENVAS_VERSION,
+             OPENVAS_GIT_REVISION);
+#else
+  g_message ("openvas %s started", OPENVAS_VERSION);
+#endif
+
+  if (plugins_cache_init ())
+    {
+      g_message ("Failed to initialize nvti cache.");
+      exit (1);
+    }
+  init_signal_handlers ();
+
+  globals = g_malloc0 (sizeof (struct scan_globals));
+  globals->scan_id = g_strdup (scan_id);
+  scanner_thread (globals);
+  //exit (0);
+}
+// END CUSTOM CHANGE
+
 /**
  * @brief Check TLS.
  */
@@ -482,6 +528,12 @@ openvas (int argc, char *argv[], char *env[])
   static gboolean print_specs = FALSE;
   static gboolean print_sysconfdir = FALSE;
   static gboolean update_vt_info = FALSE;
+  // CUSTOM CHANGE : openvas-light
+  // Init vars to run openvas in openvas-light mode
+  static gboolean *run_standalone_openvas_light = FALSE;
+  // END CUSTOM CHANGE
+
+
   GError *error = NULL;
   GOptionContext *option_context;
   static GOptionEntry entries[] = {
@@ -501,6 +553,11 @@ openvas (int argc, char *argv[], char *env[])
      "<string>"},
     {"scan-stop", '\0', 0, G_OPTION_ARG_STRING, &stop_scan_id,
      "ID of scan to stop", "<string>"},
+    // CUSTOM CHANGE : openvas-light
+    // run openvas in openvas-light mode with args '-x'
+    {"run-standalone-openvas-light", 'x', 0, G_OPTION_ARG_NONE, &run_standalone_openvas_light,
+    "Run OpenVAS-light as a daemon waiting for scanning targets", NULL},
+    // END CUSTOM CHANGE
 
     {NULL, 0, 0, 0, NULL, NULL, NULL}};
 
@@ -622,6 +679,16 @@ openvas (int argc, char *argv[], char *env[])
 #endif // LOG_REFERENCES_AVAILABLE
       return EXIT_SUCCESS;
     }
+
+  // CUSTOM CHANGE : openvas-light
+  // run in openvas-light mode as a daemon
+  if (run_standalone_openvas_light)
+  {
+    run_standalone_scan();
+    printf("Quit!\n");
+    exit (0);
+  }
+  // END CUSTOM CHANGE
 
   if (print_specs)
     {

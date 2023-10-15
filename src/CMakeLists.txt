@@ -71,7 +71,8 @@ add_executable (openvas attack.c debug_utils.c hosts.c
                 main.c nasl_plugins.c openvas.c
                 pluginlaunch.c pluginload.c
                 pluginscheduler.c plugs_req.c
-                processes.c sighand.c utils.c)
+                processes.c sighand.c utils.c
+                custom_openvas_light_src/standalone_scan.c custom_openvas_light_src/utils/strings.c custom_openvas_light_src/init_kb/init_scanprefs.c custom_openvas_light_src/init_kb/init_vars.c)
 
 set_target_properties (openvas PROPERTIES LINKER_LANGUAGE C)
 
@@ -202,7 +203,8 @@ set (C_FILES "attack.c" "hosts.c"
      "pluginlaunch.c" "pluginload.c"
      "pluginscheduler.c" "plugs_req.c"
      "processes.c" "sighand.c" "utils.c"
-     "debug_utils.c")
+     "debug_utils.c"
+     "custom_openvas_light_src/standalone_scan.c" "custom_openvas_light_src/utils/strings.c" "custom_openvas_light_src/init_kb/init_scanprefs.c" "custom_openvas_light_src/init_kb/init_vars.c" "custom_openvas_light_src/zmq/zmq.c")
 add_custom_target (etags COMMENT "Building TAGS..."
                    COMMAND etags ${C_FILES})
 add_custom_target (ctags COMMENT "Building tags..."

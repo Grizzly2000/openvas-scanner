@@ -627,6 +627,24 @@ proto_post_wrapped (const char *oid, struct script_infos *desc, int port,
   GError *err = NULL;
   GString *action_str;
   gsize length;
+  // CUSTOM CHANGE : openvas-light
+  // Init vars to get scanid
+  kb_t main_kb;
+  int maindbid;
+  char * scan_id = NULL;
+  char * buffer_openvas_light = NULL;
+  char * data_openvas_light = NULL;
+  gsize length_openvas_light;
+  GError *err_openvas_light = NULL;
+  // END CUSTOM CHANGE
+
+  // CUSTOM CHANGE : openvas-light
+  // Get current scanid
+  maindbid = atoi (prefs_get ("ov_maindbid"));
+  main_kb = kb_direct_conn (prefs_get ("db_address"), maindbid);
+  scan_id = kb_item_get_str (main_kb, ("internal/scanid"));
+  kb_lnk_reset (main_kb);
+  // END CUSTOM CHANGE
 
   /* Should not happen, just to avoid trouble stop here if no NVTI found */
   if (!oid)
@@ -647,6 +665,31 @@ proto_post_wrapped (const char *oid, struct script_infos *desc, int port,
   else if (desc->vhosts)
     hostname = ((gvm_vhost_t *) desc->vhosts->data)->value;
   addr6_to_str (plug_get_host_ip (desc), ip_str);
+  // CUSTOM CHANGE : openvas-light
+  // Add scan_id in result buffer
+  buffer_openvas_light = g_strdup_printf (
+    "%s|||%s|||%s|||%s/%s|||%s|||%s|||%s|||%s", 
+    msg_type_to_str (msg_type), 
+    ip_str,
+    hostname ? hostname : " ",
+    port_s,
+    proto,
+    oid,
+    action_str->str,
+    uri ? uri : "",
+    scan_id // add scan_id
+  );
+  /* Convert to UTF-8 before sending to Manager. */
+  data_openvas_light = g_convert (buffer_openvas_light, -1, "UTF-8", "ISO_8859-1", NULL, &length_openvas_light, &err_openvas_light);
+  if (!data_openvas_light)
+    {
+      g_warning ("%s: Error converting to UTF-8: %s\nOriginal string: %s",
+                 __func__, err_openvas_light->message, buffer_openvas_light);
+      g_free (buffer_openvas_light);
+      g_string_free (action_str, TRUE);
+      return;
+    }
+  // END CUSTOM CHANGE
   buffer = g_strdup_printf ("%s|||%s|||%s|||%s/%s|||%s|||%s|||%s",
                             msg_type_to_str (msg_type), ip_str,
                             hostname ? hostname : " ", port_s, proto, oid,
@@ -664,6 +707,12 @@ proto_post_wrapped (const char *oid, struct script_infos *desc, int port,
 
   kb_item_push_str_with_main_kb_check (get_main_kb (), "internal/results",
                                        data);
+  
+  // CUSTOM CHANGE : openvas-light
+  // publish result in channel 'openvas_light_results'
+  kb_item_publish_str_openvas_light(kb, "openvas_light_results", data_openvas_light);
+  // END CUSTOM CHANGE
+
   g_free (data);
   g_free (buffer);
   g_string_free (action_str, TRUE);

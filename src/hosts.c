@@ -68,6 +68,21 @@ host_set_time (kb_t kb, char *ip, char *type)
   time_t t;
   int len;
 
+  // CUSTOM CHANGE : openvas-light
+  // Init vars to get scanid
+  kb_t main_kb;
+  int maindbid;
+  char * scan_id = NULL;
+  char log_msg_openvas_light[1024];
+
+  // CUSTOM CHANGE : openvas-light
+  // Get current scanid
+  maindbid = atoi (prefs_get ("ov_maindbid"));
+  main_kb = kb_direct_conn (prefs_get ("db_address"), maindbid);
+  scan_id = kb_item_get_str (main_kb, ("internal/scanid"));
+  kb_lnk_reset (main_kb);
+  // END CUSTOM CHANGE
+
   t = time (NULL);
   char ts[26];
   char *ts_ptr = ts;
@@ -76,12 +91,25 @@ host_set_time (kb_t kb, char *ip, char *type)
   len = strlen (timestr);
   if (timestr[len - 1] == '\n')
     timestr[len - 1] = '\0';
+  
+  // CUSTOM CHANGE : openvas-light
+  // Add scanid in start scanner on host message
+  snprintf (log_msg_openvas_light, sizeof (log_msg_openvas_light), 
+    "%s|||%s||||||||| |||%s|||%s", 
+    type, 
+    ip,
+    timestr,
+    scan_id
+  );
+  kb_item_phk_publish_str(kb, "openvas_light_results", log_msg_openvas_light);
+  // END CUSTOM CHANGE
 
   snprintf (log_msg, sizeof (log_msg), "%s|||%s||||||||| |||%s", type, ip,
             timestr);
   g_free (timestr);
 
   kb_item_push_str_with_main_kb_check (kb, "internal/results", log_msg);
+  
 }
 
 static void
